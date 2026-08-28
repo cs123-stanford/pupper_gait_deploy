@@ -1,0 +1,454 @@
+controller_manager:
+  ros__parameters:
+    # Run slightly above nominal 500Hz in order to get exactly 50hz for neural controller
+    # Should develop a better way to handle this in the future
+    update_rate: 520
+
+
+    neural_controller:
+      type: neural_controller/NeuralController
+
+
+    neural_controller_three_legged:
+      type: neural_controller/NeuralController
+
+
+    # The student policy slot (square): whatever deploy.sh last downloaded.
+    # The policy JSON declares its own observation layout, so any policy
+    # exported by mjlab drops in with no controller change.
+    neural_controller_student:
+      type: neural_controller/NeuralController
+
+
+    # The default policy (X button).
+    neural_controller_default:
+      type: neural_controller/NeuralController
+
+
+    neural_controller_default_alt:
+      type: neural_controller/NeuralController
+
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+
+imu_sensor_broadcaster:
+  ros__parameters:
+    update_rate: 260
+    frame_id: base_link
+    sensor_name: imu_sensor
+
+
+neural_controller:
+  ros__parameters:
+    repeat_action: 10
+
+
+    gain_multiplier: 1.0
+    estop_kd: 0.1
+
+
+    joint_names:
+      [
+        "leg_front_r_1",
+        "leg_front_r_2",
+        "leg_front_r_3",
+        "leg_front_l_1",
+        "leg_front_l_2",
+        "leg_front_l_3",
+        "leg_back_r_1",
+        "leg_back_r_2",
+        "leg_back_r_3",
+        "leg_back_l_1",
+        "leg_back_l_2",
+        "leg_back_l_3",
+      ]
+
+
+    default_joint_pos:
+      [0.26, 0.0, -0.52, -0.26, 0.0, 0.52, 0.26, 0.0, -0.52, -0.26, 0.0, 0.52]
+
+
+    init_kps: [7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+
+
+    # Per-joint trim on top of the policy's kp, for a robot whose motors are not
+    # all equally strong -- the policy JSON stamps kp as one scalar for all twelve
+    # joints, so this cannot be expressed by editing kps here, and gain_multiplier
+    # would hit kd and every other joint too. Always 1.0 in the repo: a robot's
+    # own trims go in robot_trims.yaml (gitignored; see robot_trims.example.yaml),
+    # which install.py writes into the installed copy of this file.
+    kp_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    init_kds:
+      [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+
+
+    init_duration: 2.0
+    fade_in_duration: 2.0
+
+
+    action_types:
+      [
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+      ]
+
+
+    max_body_angle: 1.5
+
+
+    model_path: "$(find-pkg-share neural_controller)/launch/legacy_walk_policy.json"
+
+
+neural_controller_three_legged:
+  ros__parameters:
+    repeat_action: 10
+
+
+    gain_multiplier: 1.0
+    estop_kd: 0.1
+
+
+    joint_names:
+      [
+        "leg_front_r_1",
+        "leg_front_r_2",
+        "leg_front_r_3",
+        "leg_front_l_1",
+        "leg_front_l_2",
+        "leg_front_l_3",
+        "leg_back_r_1",
+        "leg_back_r_2",
+        "leg_back_r_3",
+        "leg_back_l_1",
+        "leg_back_l_2",
+        "leg_back_l_3",
+      ]
+
+
+    default_joint_pos:
+      [0.26, 0.0, -0.52, -0.26, 0.0, 0.52, 0.26, 0.0, -0.52, -0.26, 0.0, 0.52]
+
+
+    init_kps: [7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+
+
+    # Per-robot trims (robot_trims.yaml); see neural_controller above.
+    kp_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    init_kds:
+      [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+
+
+    init_duration: 2.0
+    fade_in_duration: 2.0
+
+
+    action_types:
+      [
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+      ]
+
+
+    max_body_angle: 1.5
+
+
+    model_path: "$(find-pkg-share neural_controller)/launch/three_legged_policy.json"
+
+
+# The student policy slot (square button): loads whatever deploy.sh last
+# installed as test_policy.json. Everything the policy itself pins down --
+# kp, kd, action scale, default pose, joint limits, observation history and
+# frame layout, reference tables -- comes from the JSON, so this section only
+# carries what the controller needs before the JSON is read.
+neural_controller_student:
+  ros__parameters:
+    repeat_action: 10
+
+
+    gain_multiplier: 1.0
+    estop_kd: 0.1
+
+
+    joint_names:
+      [
+        "leg_front_r_1",
+        "leg_front_r_2",
+        "leg_front_r_3",
+        "leg_front_l_1",
+        "leg_front_l_2",
+        "leg_front_l_3",
+        "leg_back_r_1",
+        "leg_back_r_2",
+        "leg_back_r_3",
+        "leg_back_l_1",
+        "leg_back_l_2",
+        "leg_back_l_3",
+      ]
+
+
+    default_joint_pos:
+      [0.26, 0.0, -0.52, -0.26, 0.0, 0.52, 0.26, 0.0, -0.52, -0.26, 0.0, 0.52]
+
+
+    init_kps: [7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+
+
+    # Per-robot trims (robot_trims.yaml); see neural_controller above.
+    kp_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    init_kds:
+      [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+
+
+    init_duration: 2.0
+    fade_in_duration: 2.0
+
+
+    action_types:
+      [
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+      ]
+
+
+    # Permissive while the trot is being brought up on hardware; tighten toward
+    # the 0.52 the walking modes use once it is trusted.
+    max_body_angle: 1.5
+
+
+    model_path: "$(find-pkg-share neural_controller)/launch/test_policy.json"
+
+
+# The default policy (X button).
+neural_controller_default:
+  ros__parameters:
+    repeat_action: 10
+
+
+    gain_multiplier: 1.0
+    estop_kd: 0.1
+
+
+    joint_names:
+      [
+        "leg_front_r_1",
+        "leg_front_r_2",
+        "leg_front_r_3",
+        "leg_front_l_1",
+        "leg_front_l_2",
+        "leg_front_l_3",
+        "leg_back_r_1",
+        "leg_back_r_2",
+        "leg_back_r_3",
+        "leg_back_l_1",
+        "leg_back_l_2",
+        "leg_back_l_3",
+      ]
+
+
+    default_joint_pos:
+      [0.26, 0.0, -0.52, -0.26, 0.0, 0.52, 0.26, 0.0, -0.52, -0.26, 0.0, 0.52]
+
+
+    init_kps: [7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+
+
+    # Per-robot trims (robot_trims.yaml); see neural_controller above.
+    kp_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    init_kds:
+      [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+
+
+    init_duration: 2.0
+    fade_in_duration: 2.0
+
+
+    action_types:
+      [
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+      ]
+
+
+    max_body_angle: 1.0
+
+
+    game_buttons: false
+    max_vx_forward: 0.49
+    max_vx_backward: 0.3
+
+
+    model_path: "$(find-pkg-share neural_controller)/launch/default_policy.json"
+
+
+    chord_partner: "neural_controller_default_alt"
+
+
+neural_controller_default_alt:
+  ros__parameters:
+    repeat_action: 10
+
+
+    gain_multiplier: 1.0
+    estop_kd: 0.1
+
+
+    joint_names:
+      [
+        "leg_front_r_1",
+        "leg_front_r_2",
+        "leg_front_r_3",
+        "leg_front_l_1",
+        "leg_front_l_2",
+        "leg_front_l_3",
+        "leg_back_r_1",
+        "leg_back_r_2",
+        "leg_back_r_3",
+        "leg_back_l_1",
+        "leg_back_l_2",
+        "leg_back_l_3",
+      ]
+
+
+    default_joint_pos:
+      [0.26, 0.0, -0.52, -0.26, 0.0, 0.52, 0.26, 0.0, -0.52, -0.26, 0.0, 0.52]
+
+
+    init_kps: [7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5]
+
+
+    # Per-robot trims (robot_trims.yaml); see neural_controller above.
+    kp_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    init_kds:
+      [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+
+
+    init_duration: 2.0
+    fade_in_duration: 2.0
+
+
+    action_types:
+      [
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+        "position",
+      ]
+
+
+    max_body_angle: 1.5
+
+
+    model_path: "$(find-pkg-share neural_controller)/launch/default_policy.json"
+
+
+    chord_partner: "neural_controller_default"
+
+
+# Joystick controller switching. Set explicitly here (rather than relying on
+# the compiled-in defaults, which differ between the upstream monorepo and
+# lab 5). The map:
+#   X = the default policy, circle = three-legged, triangle = original walk,
+#   square = the student policy slot (deploy.sh installs there).
+estop_controller:
+  ros__parameters:
+    switch_button_indices: [0, 1, 2, 3]
+    controller_names:
+      [
+        "neural_controller_default",
+        "neural_controller_three_legged",
+        "neural_controller",
+        "neural_controller_student",
+      ]
+
+
+teleop_twist_joy_node:
+  ros__parameters:
+    axis_linear:
+      x: 1
+      y: 0
+    scale_linear:
+      # Full stick = 1.5 m/s: the captured-reference mixed-gaits checkpoints
+      # (run tryieau1 onward) train on the full +-1.5 band, with the fast
+      # references distilled from what the robot actually does at 1.5. The
+      # trot-to-fast switch comes from the policy JSON's gallop_speed (0.5),
+      # i.e. a third of stick deflection.
+      x: 1.5
+      y: 0.5
+
+
+    axis_angular:
+      yaw: 3
+    scale_angular:
+      yaw: 2.0
+
+
+    require_enable_button: false
+
+
+joy_node:
+  ros__parameters:
+    dev: "/dev/input/js0"
+    autorepeat_rate: 50.0
+    coalesce_interval: 0.02
+
+
+joint_state_broadcaster:
+  ros__parameters:
+    update_rate: 260
+    use_local_topics: false
+
+

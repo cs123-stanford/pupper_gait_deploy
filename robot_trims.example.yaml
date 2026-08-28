@@ -1,0 +1,15 @@
+# Per-robot motor trims. Copy to robot_trims.yaml (gitignored) on a robot whose
+# motors need them; install.py (and so deploy.sh) writes the scales into the
+# installed config.yaml. The repo's config.yaml keeps every kp_scale at 1.0.
+#
+# Each entry is 12 kp multipliers in the controller's joint order:
+#   front_r_1, front_r_2, front_r_3, front_l_1, front_l_2, front_l_3,
+#   back_r_1,  back_r_2,  back_r_3,  back_l_1,  back_l_2,  back_l_3
+# Key by controller section in config.yaml, or "all" for every section without
+# its own entry. The scale is relative to each policy's kp, so a section whose
+# policy has a different kp may need its own entry to hit the same gain.
+#
+# Example: one weak motor (front_l_3) run 20% stiffer, one stiff motor
+# (front_r_2) softened by 10%.
+kp_scale:
+  all: [1.0, 0.9, 1.0, 1.0, 1.0, 1.2, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]

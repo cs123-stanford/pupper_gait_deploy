@@ -1,0 +1,196 @@
+neural_controller:
+  repeat_action:
+    {
+      type: int,
+      default_value: 10,
+      description: "Number of times to repeat the same action before querying the policy again",
+    }
+
+  model_path:
+    {
+      type: string,
+      default_value: "",
+      description: "Path to the model weights",
+    }
+
+  chord_partner:
+    {
+      type: string,
+      default_value: "",
+      description: "Controller to switch to when L1+R1 are pressed together; empty disables the chord",
+    }
+
+  game_buttons:
+    {
+      type: bool,
+      default_value: true,
+      description: "For jump-slot policies: whether the jump trigger and run buttons are live. False runs the same policy walk-only -- no jumps, always the walk speed cap",
+    }
+
+  speed_cap:
+    {
+      type: double,
+      default_value: 0.0,
+      description: "For jump-slot policies: if > 0, replaces the JSON's walk/run speed cap on vx and vy, so the policy can run without the run button. 0 keeps the walk/run caps",
+    }
+
+  reference_tricks:
+    {
+      type: bool,
+      default_value: false,
+      description: "For jump-slot policies: accept reference tricks on ~/reference_trick (std_msgs/Float32MultiArray: playback_s, active_s, cross_fade_s, then an n x 12 joint-offset table). Each plays once through the jump-slot overlay, starting immediately, like a button jump",
+    }
+
+  max_vx_forward:
+    {
+      type: double,
+      default_value: 0.0,
+      description: "Extra forward speed cap (m/s) applied to the filtered command; 0 disables",
+    }
+
+  max_vx_backward:
+    {
+      type: double,
+      default_value: 0.0,
+      description: "Extra backward speed cap (m/s, positive number) applied to the filtered command; 0 disables",
+    }
+
+  use_imu:
+    {
+      type: bool,
+      default_value: true,
+      description: "Whether to use the IMU sensor",
+    }
+
+  imu_sensor_name:
+    {
+      type: string,
+      default_value: "imu_sensor",
+      description: "Name of the IMU sensor",
+    }
+
+  joint_names:
+    {
+      type: string_array,
+      default_value: [],
+      description: "Names of the joints to control, in the order expected by the policy observation/action spaces",
+    }
+
+  default_joint_pos:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Default joint positions. Added to policy output to get command. Subtracted from read motor angles to get observation, e.g. commanded_motor_angles = scaled_action + default_joint_pos",
+    }
+
+  kps:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Position gains for the joints",
+    }
+
+  kds:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Velocity gains for the joints",
+    }
+
+  gain_multiplier:
+    {
+      type: double,
+      default_value: 1.0,
+      description: "Multiplier for the position control gains",
+    }
+
+  kp_scale:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Per-joint multiplier on kp, for hardware variation between individual robots (e.g. a weak motor that needs a stiffer loop). Applied on top of gain_multiplier, and after the policy JSON's scalar kp, which would otherwise overwrite anything per-joint set in kps. Empty means no trim. Note the hardware interface clamps the result to the joint's kp_max from the robot description",
+    }
+
+  init_kps:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Position gains for the joints during initialization (return to default position)",
+    }
+
+  init_kds:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Velocity gains for the joints during initialization (return to default position)",
+    }
+
+  init_duration:
+    {
+      type: double,
+      default_value: 2.0,
+      description: "Time to return to the default position on startup",
+    }
+
+  fade_in_duration:
+    {
+      type: double,
+      default_value: 2.0,
+      description: "Time to gradually fade in the policy actions on startup",
+    }
+
+  action_scales:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Scaling factor for the actions",
+    }
+
+  action_types:
+    {
+      type: string_array,
+      default_value: [],
+      description: "Type of action for each joint: position or velocity",
+    }
+
+  joint_lower_limits:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Lower limits for the joint positions",
+    }
+
+  joint_upper_limits:
+    {
+      type: double_array,
+      default_value: [],
+      description: "Upper limits for the joint positions",
+    }
+
+  observation_history:
+    {
+      type: int,
+      default_value: 1,
+      description: "Number of previous observations to include in the observation space",
+    }
+
+  observation_limit:
+    {
+      type: double,
+      default_value: 100.0,
+      description: "Maximum observation value before scaling",
+    }
+
+  max_body_angle:
+    {
+      type: double,
+      default_value: 0.52,
+      description: "Maximum body angle (rad) allowed before the controller is reset",
+    }
+
+  estop_kd:
+    {
+      type: double,
+      default_value: 0.1,
+      description: "Velocity gain for the joints during emergency stop",
+    }
